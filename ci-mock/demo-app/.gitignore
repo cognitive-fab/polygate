@@ -1,0 +1,6 @@
+# CI-produced reports live as job artifacts, not in git — but the stamped
+# manifest IS committed (the staleness gate diffs against it).
+out/*
+!out/verify-manifest.json
+specs/
+node_modules/

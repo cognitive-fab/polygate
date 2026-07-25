@@ -1,0 +1,5 @@
+{"pre":{"status":"trial","autoRenew":true,"attempts":0},"action":"CONVERT","data":{"cardOnFile":true},"post":{"status":"paid","autoRenew":true,"attempts":0}}
+{"pre":{"status":"paid","autoRenew":true,"attempts":0},"action":"CANCEL","data":{},"post":{"status":"paid","autoRenew":false,"attempts":0}}
+{"pre":{"status":"paid","autoRenew":false,"attempts":0},"action":"CANCEL","data":{},"post":{"status":"paid","autoRenew":false,"attempts":0}}
+{"pre":{"status":"paid","autoRenew":false,"attempts":0},"action":"CHARGE_FAILED","data":{},"post":{"status":"grace","autoRenew":false,"attempts":1}}
+{"pre":{"status":"grace","autoRenew":false,"attempts":1},"action":"CHARGE_OK","data":{},"post":{"status":"paid","autoRenew":false,"attempts":0}}

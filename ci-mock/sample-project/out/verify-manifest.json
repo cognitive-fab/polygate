@@ -1,0 +1,14 @@
+{
+  "machine": "billing-lifecycle",
+  "moduleHash": "7cbd0107e804",
+  "verdict": "PASS",
+  "specs": 3,
+  "generatedAt": "2026-07-25T04:20:26.760Z",
+  "provenance": {
+    "pipeline": "local",
+    "job": "local",
+    "triggeredBy": "jjdub",
+    "ref": "local",
+    "sha": "local"
+  }
+}

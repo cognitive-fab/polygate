@@ -1,0 +1,40 @@
+# Mock of the polygraph CI gate. Three jobs, three trust levels:
+#   polygraph-check   — every MR + main. FREE, no key. Blocks merge on staleness.
+#   regenerate-specs  — manual, protected branch only. The ONLY key-bearing job.
+#   push-artifacts    — main only. Sends the whitelisted bundle to the control plane.
+stages: [verify, generate, publish]
+
+default:
+  image: node:20-alpine
+
+polygraph-check:
+  stage: verify
+  script:
+    - node scripts/check.mjs
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+regenerate-specs:
+  stage: generate
+  environment: polygraph-gen
+  when: manual
+  # POLYGRAPH_ORG_KEY is a masked + protected CI/CD variable: it simply does
+  # not exist in pipelines on unprotected branches or in MR pipelines, so this
+  # job can only succeed where the protection allows it.
+  variables:
+    ANTHROPIC_API_KEY: $POLYGRAPH_ORG_KEY
+  script:
+    - node scripts/gen.mjs
+  artifacts:
+    paths: [out/verify-manifest.json]
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+push-artifacts:
+  stage: publish
+  script:
+    - node scripts/push.mjs
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"

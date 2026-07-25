@@ -1,0 +1,117 @@
+{
+  "lang": "javascript",
+  "stateKeys": [
+    {
+      "name": "status",
+      "type": "string — 'trial' | 'paid' | 'grace' | 'lapsed'"
+    },
+    {
+      "name": "autoRenew",
+      "type": "boolean — false once the owner cancels; a cancelled plan is never charged again"
+    },
+    {
+      "name": "attempts",
+      "type": "number — dunning retry counter 0..3; non-zero only while status is 'grace'"
+    }
+  ],
+  "initState": {
+    "status": "trial",
+    "autoRenew": true,
+    "attempts": 0
+  },
+  "actions": {
+    "CONVERT": {
+      "dataFields": {
+        "cardOnFile": "boolean — a payment card is on file when the trial clock elapses"
+      }
+    },
+    "CANCEL": {
+      "dataFields": {}
+    },
+    "CHARGE_FAILED": {
+      "dataFields": {}
+    },
+    "CHARGE_OK": {
+      "dataFields": {}
+    },
+    "LAPSE": {
+      "dataFields": {}
+    },
+    "REACTIVATE": {
+      "dataFields": {
+        "newCard": "boolean — a new payment card was provided"
+      }
+    }
+  },
+  "dataDomain": {
+    "CONVERT": {
+      "cardOnFile": [
+        true,
+        false
+      ]
+    },
+    "REACTIVATE": {
+      "newCard": [
+        true,
+        false
+      ]
+    }
+  },
+  "terminalStates": [],
+  "specialRules": [
+    {
+      "name": "cancelled-trial-never-converts",
+      "whenState": "trial",
+      "whenAction": "CONVERT",
+      "note": "A cancelled trial (autoRenew=false) must reject CONVERT regardless of cardOnFile — a plan is never charged while cancelled. This rejection applies ONLY when autoRenew=false; an active trial (autoRenew=true) with cardOnFile=true transitions to paid."
+    },
+    {
+      "name": "no-card-no-conversion",
+      "whenState": "trial",
+      "whenAction": "CONVERT",
+      "note": "CONVERT with cardOnFile=false is a rejected no-op even for an active trial — the first-period charge requires a card on file. This rejection applies ONLY when cardOnFile=false."
+    },
+    {
+      "name": "duplicate-convert-rejected",
+      "whenState": "paid",
+      "whenAction": "CONVERT",
+      "note": "CONVERT redelivered to an already-paid plan (webhook retry/redelivery) is always a rejected no-op — the plan is never charged twice for the first period. CONVERT from grace or lapsed is likewise a rejected no-op (reason 'convert-only-from-trial')."
+    },
+    {
+      "name": "stale-charge-webhook-in-trial",
+      "whenState": "trial",
+      "whenAction": "CHARGE_OK | CHARGE_FAILED",
+      "note": "Charge webhooks arriving while status is trial are stale and always rejected — no renewal charge exists before conversion."
+    },
+    {
+      "name": "stale-charge-webhook-in-lapsed",
+      "whenState": "lapsed",
+      "whenAction": "CHARGE_OK | CHARGE_FAILED",
+      "note": "Charge webhooks arriving on a lapsed plan are stale and always rejected."
+    },
+    {
+      "name": "attempts-capped-at-three",
+      "whenState": "grace",
+      "whenAction": "CHARGE_FAILED",
+      "note": "In grace, CHARGE_FAILED increments attempts by 1 up to a maximum of 3 (BEHAVIORAL branch); a further CHARGE_FAILED when attempts is already 3 is a rejected no-op. This rejection applies ONLY when attempts >= 3."
+    },
+    {
+      "name": "lapse-requires-exhausted-dunning",
+      "whenState": "grace",
+      "whenAction": "LAPSE",
+      "note": "LAPSE is accepted ONLY in grace with attempts >= 3 (moves to lapsed and resets attempts to 0 — attempts is non-zero only in grace); in grace with attempts < 3, and in every other status, LAPSE is a rejected no-op."
+    },
+    {
+      "name": "reactivate-requires-new-card",
+      "whenState": "lapsed",
+      "whenAction": "REACTIVATE",
+      "note": "REACTIVATE with newCard=false is a rejected no-op; with newCard=true a lapsed plan returns to paid with attempts=0 and autoRenew=true. From any status other than lapsed REACTIVATE is always rejected (reason 'reactivate-only-from-lapsed')."
+    },
+    {
+      "name": "cancel-is-idempotent",
+      "whenAction": "CANCEL",
+      "note": "CANCEL when autoRenew is already false is a rejected no-op (idempotent, harmless); otherwise it sets autoRenew=false in ANY status and never changes status or attempts — a paid plan stays paid until period end, a trial simply never converts."
+    }
+  ],
+  "noOpRule": "An action that does not apply in the current state yields post == pre (an observable reject(reason), never a throw). No terminal states are declared: lapsed is re-activatable and a cancelled trial is an absorbing configuration under status 'trial', so no primary-state value uniquely ends every scenario."
+}

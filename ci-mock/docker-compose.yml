@@ -1,0 +1,58 @@
+# GitLab CE mock environment for the polygraph CI-gate phase.
+# See docs/CI-MOCK-SETUP.md for the full setup walkthrough.
+#
+# Local-only mock. Web UI: http://localhost:8080  ·  Git SSH: localhost:2222
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: polygraph-gitlab
+    hostname: localhost
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:8080'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+        # external_url on :8080 makes nginx listen on 8080 — which collides
+        # with puma's internal default (127.0.0.1:8080) and crash-loops puma
+        # with EADDRINUSE. Move puma off 8080 — and NOT to 8082/8092 (sidekiq
+        # exporter + health checks) or 815x (kas). 8081 is free.
+        puma['port'] = 8081
+        # 10 workers is the omnibus default for this CPU count — far too heavy
+        # for a laptop mock.
+        puma['worker_processes'] = 2
+        # Lighten the instance for a laptop mock — no metrics stack.
+        prometheus_monitoring['enable'] = false
+        # First-boot password for the built-in admin account — sign in as
+        # username `root` with this password. (Mock only — never do this on a
+        # real instance; rotate if this compose file ever leaves localhost.)
+        gitlab_rails['initial_root_password'] = 'polygraph-ci-mock!2026'
+    ports:
+      - "8080:8080"   # external_url includes :8080, so nginx listens on 8080
+      - "2222:22"
+    volumes:
+      - gitlab-config:/etc/gitlab
+      - gitlab-logs:/var/log/gitlab
+      - gitlab-data:/var/opt/gitlab
+    shm_size: "256m"
+    healthcheck:
+      test: ["CMD", "/opt/gitlab/bin/gitlab-healthcheck", "--fail", "--max-time", "10"]
+      interval: 30s
+      timeout: 15s
+      retries: 20
+      start_period: 300s
+
+  runner:
+    image: gitlab/gitlab-runner:latest
+    container_name: polygraph-runner
+    restart: unless-stopped
+    volumes:
+      - runner-config:/etc/gitlab-runner
+      # Docker executor: the runner launches job containers via the host daemon.
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - gitlab
+
+volumes:
+  gitlab-config: {}
+  gitlab-logs: {}
+  gitlab-data: {}
+  runner-config: {}

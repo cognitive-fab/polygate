@@ -1,0 +1,15 @@
+{
+  "machine": "subscription-billing",
+  "contractHash": "faedfee17dd4",
+  "moduleHash": "d0a5b515563f",
+  "invariantsHash": "faa05ad18912",
+  "versionHash": "44cab0c7dd17",
+  "verifiedAt": "2026-07-25T16:55:35.457Z",
+  "provenance": {
+    "pipeline": "local",
+    "job": "local",
+    "triggeredBy": "jjdub",
+    "ref": "local",
+    "sha": "local"
+  }
+}

@@ -1,0 +1,59 @@
+# Demo app — REAL polygraph gates in CI, no API key on the free path.
+#
+#   polygraph-check   — every MR + main: staleness + model check + trace replay,
+#                       all running the actual polygraph engines from a pinned
+#                       public clone. FREE. Blocks merge on any failure.
+#   regenerate-specs  — manual, main only, key-bearing: re-stamps the manifest
+#                       after a governed re-verification.
+#   push-artifacts    — main: the whitelisted bundle to the control plane.
+stages: [verify, generate, publish]
+
+default:
+  image: node:20  # Debian-based: git included (alpine would need apk add git)
+
+variables:
+  POLYGRAPH_REPO: https://github.com/jdubray/polygraph.git
+  POLYGRAPH_SHA: 75f239d21efe984cc1b8903473dfa9dd74f45cad  # pinned — bump deliberately
+
+.setup-polygraph: &setup-polygraph
+  - git clone --filter=blob:none $POLYGRAPH_REPO /tmp/polygraph
+  - git -C /tmp/polygraph checkout $POLYGRAPH_SHA
+  - npm --prefix /tmp/polygraph install --omit=optional --omit=dev --no-audit --no-fund
+
+polygraph-check:
+  stage: verify
+  script:
+    - node scripts/check-stale.mjs
+    - *setup-polygraph
+    - node /tmp/polygraph/scripts/check.mjs --spec next.cjs --contract contract.json --invariants invariants.mjs --json out/check.json
+    - mkdir -p specs && cp next.cjs specs/next.cjs
+    - node /tmp/polygraph/scripts/verify.mjs --contract contract.json --traces traces --specs specs --out out
+  artifacts:
+    when: always
+    paths: [out/]
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+regenerate-specs:
+  stage: generate
+  environment: polygraph-gen
+  when: manual
+  variables:
+    ANTHROPIC_API_KEY: $POLYGRAPH_ORG_KEY  # protected group variable — absent on MR pipelines
+  script:
+    - node scripts/stamp-manifest.mjs
+  artifacts:
+    paths: [out/verify-manifest.json]
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+push-artifacts:
+  stage: publish
+  needs: [polygraph-check]
+  script:
+    - node scripts/push.mjs
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"

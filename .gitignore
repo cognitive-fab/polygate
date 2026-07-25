@@ -1,0 +1,10 @@
+# Private design notes — never checked in.
+docs/private/
+
+# Personal Claude Code settings
+.claude/settings.local.json
+
+# Local noise
+node_modules/
+*.log
+.env

@@ -1,0 +1,9 @@
+{"pre":{"status":"trial","autoRenew":true,"attempts":0},"action":"CONVERT","data":{"cardOnFile":true},"post":{"status":"paid","autoRenew":true,"attempts":0}}
+{"pre":{"status":"paid","autoRenew":true,"attempts":0},"action":"CHARGE_FAILED","data":{},"post":{"status":"grace","autoRenew":true,"attempts":1}}
+{"pre":{"status":"grace","autoRenew":true,"attempts":1},"action":"CHARGE_FAILED","data":{},"post":{"status":"grace","autoRenew":true,"attempts":2}}
+{"pre":{"status":"grace","autoRenew":true,"attempts":2},"action":"CHARGE_FAILED","data":{},"post":{"status":"grace","autoRenew":true,"attempts":3}}
+{"pre":{"status":"grace","autoRenew":true,"attempts":3},"action":"LAPSE","data":{},"post":{"status":"lapsed","autoRenew":true,"attempts":0}}
+{"pre":{"status":"lapsed","autoRenew":true,"attempts":0},"action":"CHARGE_OK","data":{},"post":{"status":"lapsed","autoRenew":true,"attempts":0}}
+{"pre":{"status":"lapsed","autoRenew":true,"attempts":0},"action":"CHARGE_FAILED","data":{},"post":{"status":"lapsed","autoRenew":true,"attempts":0}}
+{"pre":{"status":"lapsed","autoRenew":true,"attempts":0},"action":"CONVERT","data":{"cardOnFile":true},"post":{"status":"lapsed","autoRenew":true,"attempts":0}}
+{"pre":{"status":"lapsed","autoRenew":true,"attempts":0},"action":"REACTIVATE","data":{"newCard":true},"post":{"status":"paid","autoRenew":true,"attempts":0}}

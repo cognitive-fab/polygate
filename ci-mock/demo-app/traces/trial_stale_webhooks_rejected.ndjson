@@ -1,0 +1,4 @@
+{"pre":{"status":"trial","autoRenew":true,"attempts":0},"action":"CHARGE_OK","data":{},"post":{"status":"trial","autoRenew":true,"attempts":0}}
+{"pre":{"status":"trial","autoRenew":true,"attempts":0},"action":"CHARGE_FAILED","data":{},"post":{"status":"trial","autoRenew":true,"attempts":0}}
+{"pre":{"status":"trial","autoRenew":true,"attempts":0},"action":"CHARGE_OK","data":{},"post":{"status":"trial","autoRenew":true,"attempts":0}}
+{"pre":{"status":"trial","autoRenew":true,"attempts":0},"action":"CONVERT","data":{"cardOnFile":true},"post":{"status":"paid","autoRenew":true,"attempts":0}}
