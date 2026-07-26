@@ -12,7 +12,7 @@ default:
   image: node:20  # Debian-based: git included (alpine would need apk add git)
 
 variables:
-  POLYGRAPH_REPO: https://github.com/jdubray/polygraph.git
+  POLYGRAPH_REPO: https://github.com/cognitive-fab/polygraph.git
   POLYGRAPH_SHA: 75f239d21efe984cc1b8903473dfa9dd74f45cad  # pinned — bump deliberately
 
 .setup-polygraph: &setup-polygraph

@@ -1,6 +1,6 @@
 # polygate
 
-CI/CD integration for the [Polygraph](https://github.com/jdubray/polygraph)
+CI/CD integration for the [Polygraph](https://github.com/cognitive-fab/polygraph)
 verification engines — a merge gate for verified stateful code: how a team wires `verify` / `polygen` / `polyvers` into
 a merge pipeline so that stateful code cannot merge unverified — with no API
 key on the free checking path, and the org key confined to one governed job.
